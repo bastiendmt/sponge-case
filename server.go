@@ -31,7 +31,7 @@ func usage() {
 }
 
 var (
-	greeting = flag.String("g", "Hello", "Greet with `greeting`")
+
 	addr     = flag.String("addr", "localhost:8080", "address to serve")
 )
 
@@ -46,16 +46,11 @@ func main() {
 		usage()
 	}
 
-	// Register handlers.
-	// All requests not otherwise mapped with go to greet.
-	// /version is mapped specifically to version.
 	router := mux.NewRouter()
-	http.HandleFunc("/version", version)
-	// http.HandleFunc("/api", spongeCase)
 
-	router.HandleFunc("/test", greet).Methods("GET")
+	router.HandleFunc("/version", version).Methods("GET")
 	router.HandleFunc("/api/{input}", spongeCase).Methods("GET")
-	// http.HandleFunc("/", greet)
+	http.Handle("/", router)
 
 	log.Printf("serving http://%s\n", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
@@ -72,16 +67,7 @@ func version(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s\n", html.EscapeString(info.String()))
 }
 
-func greet(w http.ResponseWriter, r *http.Request) {
-	name := strings.Trim(r.URL.Path, "/")
-	if name == "" {
-		name = "Gopher"
-	}
-
-	fmt.Fprintf(w, "<!DOCTYPE html>\n")
-	fmt.Fprintf(w, "%s, %s!\n", *greeting, html.EscapeString(name))
-}
-
+// main api that reads the query params
 func spongeCase(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	input := vars["input"]
